@@ -3,6 +3,11 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { LoginDto, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
 import { IsPublic } from 'src/common/decorators/public.decorator';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
+import {
+  loginValidationSchema,
+  registerValidationSchema,
+} from './util/auth-validation.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -10,12 +15,17 @@ export class AuthController {
 
   @Post('register')
   @IsPublic()
-  register(@Body() registerDTO: RegisterDTO): Promise<UserResponseDTO> {
+  register(
+    @Body(new ZodValidationPipe(registerValidationSchema))
+    registerDTO: RegisterDTO,
+  ): Promise<UserResponseDTO> {
     return this.authService.register(registerDTO);
   }
   @Post('login')
   @IsPublic()
-  login(@Body() loginDto: LoginDto): Promise<UserResponseDTO> {
+  login(
+    @Body(new ZodValidationPipe(loginValidationSchema)) loginDto: LoginDto,
+  ): Promise<UserResponseDTO> {
     return this.authService.login(loginDto);
   }
 

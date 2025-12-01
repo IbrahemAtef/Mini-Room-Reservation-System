@@ -1,0 +1,29 @@
+import { User, UserRole } from 'generated/prisma/client';
+import { faker } from '@faker-js/faker';
+import * as argon from 'argon2';
+
+export const generateUserSeed = () => {
+  const seededUser: Omit<User, 'id' | 'createdAt' | 'updatedAt'> = {
+    email: faker.internet.email(),
+    name: faker.person.fullName(),
+    password: faker.internet.password(),
+    role: faker.helpers.arrayElement(Object.values(UserRole)),
+  };
+  return seededUser;
+};
+
+export const getGuestUser = async () =>
+  ({
+    name: 'Guest',
+    email: 'guest@example.com',
+    password: await argon.hash('1234567'),
+    role: UserRole.GUEST,
+  }) as const;
+
+export const getAdminUser = async () =>
+  ({
+    name: 'Admin',
+    email: 'admin@example.com',
+    password: await argon.hash('admin123'),
+    role: UserRole.ADMIN,
+  }) as const;
