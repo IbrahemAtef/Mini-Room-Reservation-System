@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// -----------------------------
+// User Model
+// -----------------------------
+model User {
+  id       String   @id @default(cuid())
+  name     String   @db.VarChar(255)
+  email    String   @unique @db.VarChar(255)
+  password String   @db.VarChar(255)
+  role     UserRole @default(GUEST)
+
+  rooms    Room[]    @relation("owner_rooms") // For Owners
+  bookings Booking[] @relation("guest_bookings") // For Guests
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  OWNER
+  GUEST
+}
+
+// -----------------------------
+// Room Model
+// -----------------------------
+model Room {
+  id       String     @id @default(cuid())
+  name     String     @db.VarChar(255)
+  price    Decimal    @db.Decimal(8, 2)
+  capacity Int        @db.UnsignedInt
+  status   RoomStatus @default(ACTIVE)
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("owner_rooms", fields: [ownerId], references: [id])
+
+  bookings Booking[] // All bookings for this room
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("rooms")
+}
+
+enum RoomStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// -----------------------------
+// Booking Model
+// -----------------------------
+model Booking {
+  id       String        @id @default(cuid())
+  checkIn  DateTime
+  checkOut DateTime
+  status   BookingStatus @default(PENDING)
+
+  guestId String @map("guest_id")
+  guest   User   @relation("guest_bookings", fields: [guestId], references: [id])
+
+  roomId String @map("room_id")
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// -----------------------------
