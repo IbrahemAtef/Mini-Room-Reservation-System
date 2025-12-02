@@ -1,13 +1,14 @@
-// import type { LoginDto, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
-import { Body, Controller, Post } from '@nestjs/common';
+// import type { LoginDTO, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import type { LoginDto, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
-import { IsPublic } from 'src/common/decorators/public.decorator';
+import type { LoginDTO, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
+import { IsPublic } from '../../common/decorators/public.decorator';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import {
   loginValidationSchema,
   registerValidationSchema,
 } from './util/auth-validation.schema';
+import { User } from 'src/common/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -21,17 +22,22 @@ export class AuthController {
   ): Promise<UserResponseDTO> {
     return this.authService.register(registerDTO);
   }
+
   @Post('login')
   @IsPublic()
   login(
-    @Body(new ZodValidationPipe(loginValidationSchema)) loginDto: LoginDto,
+    @Body(new ZodValidationPipe(loginValidationSchema)) loginDTO: LoginDTO,
   ): Promise<UserResponseDTO> {
-    return this.authService.login(loginDto);
+    return this.authService.login(loginDTO);
   }
 
-  //TODO: @User as body
-  // @Get('validate')
-  // validate() {
-  //   return this.authService.validate();
-  // }
+  @Get('me')
+  me(@User() user: UserResponseDTO['user']) {
+    return this.authService.me(user);
+  }
+
+  @Get('validate')
+  validate(@User() user: UserResponseDTO['user']): UserResponseDTO {
+    return this.authService.validate(user);
+  }
 }

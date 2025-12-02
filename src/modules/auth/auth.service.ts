@@ -1,10 +1,10 @@
-import * as argon from 'argon2';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
+import { LoginDTO, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from 'generated/prisma/enums';
 import { removeFields } from 'src/common/utils/object.util';
+import { createArgonHash, verifyArgonHash } from 'src/common/utils/argon.file';
 
 @Injectable()
 export class AuthService {
@@ -12,9 +12,10 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
+
   async register(registerDTO: RegisterDTO): Promise<UserResponseDTO> {
     // hash password
-    const hashedPassword = await this.hashPassword(registerDTO.password);
+    const hashedPassword = await createArgonHash(registerDTO.password);
     // store user db with hashed password
     const createdUser = await this.userService.create({
       ...registerDTO,
@@ -29,7 +30,7 @@ export class AuthService {
     };
   }
 
-  async login(loginDTO: LoginDto): Promise<UserResponseDTO> {
+  async login(loginDTO: LoginDTO): Promise<UserResponseDTO> {
     // find user by email
     const foundUser = await this.userService.findByEmail(loginDTO.email);
 
@@ -37,13 +38,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // flag if policies allow this
+    // ? flag if policies allow this
     // if (foundUser.isDeleted) {
     //   throw new UnauthorizedException('Invalid credentials');
     // }
 
     // verify password with argon
-    const isPasswordValid = await this.verifyPassword(
+    const isPasswordValid = await verifyArgonHash(
       loginDTO.password,
       foundUser.password,
     );
@@ -60,6 +61,10 @@ export class AuthService {
     };
   }
 
+  me(user: UserResponseDTO['user']) {
+    return this.userService.findOne(user.id);
+  }
+
   validate(userPayload: UserResponseDTO['user']) {
     // generate jwt token
     const token = this.generateJwtToken(userPayload.id, userPayload.role);
@@ -68,14 +73,6 @@ export class AuthService {
       user: userPayload,
       token,
     };
-  }
-
-  private hashPassword(password: string) {
-    return argon.hash(password);
-  }
-
-  private verifyPassword(password: string, hashedPassword: string) {
-    return argon.verify(hashedPassword, password);
   }
 
   private generateJwtToken(userId: string, role: UserRole) {

@@ -2,46 +2,57 @@ import { Injectable } from '@nestjs/common';
 import { UpdateUserDTO } from './dto/user.dto';
 import { DatabaseService } from '../database/database.service';
 import { RegisterDTO } from '../auth/dto/auth.dto';
-// import {
-//   PaginatedResult,
-//   PaginationQueryType,
-// } from 'src/common/types/util.types';
+import {
+  PaginatedResult,
+  PaginationQueryType,
+} from '../../common/types/util.types';
+import { User, UserRole } from 'generated/prisma/client'; // Fixed duplicate import
+import { removeFields } from 'src/common/utils/object.util';
+import { createArgonHash } from 'src/common/utils/argon.file';
 
 @Injectable()
 export class UserService {
   constructor(private prismaService: DatabaseService) {}
+
   create(registerDTO: RegisterDTO) {
     return this.prismaService.user.create({
       data: registerDTO,
     });
   }
 
-  // findAll(
-  //   query: PaginationQueryType,
-  // ): Promise<PaginatedResult<Omit<User, 'password'>>> {
-  //   return this.prismaService.$transaction(async (prisma) => {
-  //     const pagination = this.prismaService.handleQueryPagination(query);
-  //     const users = await prisma.user.findMany({
-  //       ...removeFields(pagination, ['page']),
-  //       where: { isDeleted: false },
-  //       orderBy: {
-  //         createdAt: 'desc',
-  //       },
-  //       omit: {
-  //         password: true,
-  //       },
-  //     });
-  //     const count = await prisma.user.count({ where: { isDeleted: false } });
-  //     return {
-  //       data: users,
-  //       ...this.prismaService.formatPaginationResponse({
-  //         page: pagination.page,
-  //         count,
-  //         limit: pagination.take,
-  //       }),
-  //     };
-  //   });
-  // }
+  findAll(
+    query: PaginationQueryType,
+  ): Promise<PaginatedResult<Omit<User, 'password'>>> {
+    return this.prismaService.$transaction(async (prisma) => {
+      const { skip, take, page } =
+        this.prismaService.handleQueryPagination(query);
+      const users = await prisma.user.findMany({
+        where: {
+          role: { not: UserRole.ADMIN }, // Filter for non-admin users
+        },
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        omit: {
+          password: true,
+        },
+      });
+      const count = await prisma.user.count({
+        where: { role: { not: UserRole.ADMIN } }, // Count only non-admin users
+      });
+      return {
+        data: users,
+        ...this.prismaService.formatPaginationResponse({
+          page,
+          count,
+          limit: take,
+        }),
+      };
+    });
+  }
+
   findByEmail(email: string) {
     return this.prismaService.user.findUnique({
       where: { email },
@@ -55,12 +66,18 @@ export class UserService {
     });
   }
 
-  update(id: string, userUpdatePayload: UpdateUserDTO) {
-    return this.prismaService.user.update({
+  async update(id: string, userUpdatePayload: UpdateUserDTO) {
+    if (userUpdatePayload.password) {
+      const hashedValue = await createArgonHash(userUpdatePayload.password);
+      userUpdatePayload.password = hashedValue;
+    }
+
+    const updatedUser = await this.prismaService.user.update({
       where: { id },
       data: userUpdatePayload,
-      omit: { password: true },
     });
+
+    return removeFields(updatedUser, ['password']);
   }
 
   // remove(id: string) {

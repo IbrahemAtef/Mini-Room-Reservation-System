@@ -20,6 +20,14 @@ export const getGuestUser = async () =>
     role: UserRole.GUEST,
   }) as const;
 
+export const getOwnerUser = async () =>
+  ({
+    name: 'Owner',
+    email: 'owner@example.com',
+    password: await argon.hash('1234567'),
+    role: UserRole.OWNER,
+  }) as const;
+
 export const getAdminUser = async () =>
   ({
     name: 'Admin',

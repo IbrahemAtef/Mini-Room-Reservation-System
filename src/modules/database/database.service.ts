@@ -1,6 +1,10 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from 'generated/prisma/client';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import {
+  PaginationQueryType,
+  PaginationResponseMeta,
+} from 'src/common/types/util.types';
 
 @Injectable()
 export class DatabaseService
@@ -17,10 +21,33 @@ export class DatabaseService
     });
     super({ adapter });
   }
+
   async onModuleInit() {
     await this.$connect();
   }
+
   async onModuleDestroy() {
     await this.$disconnect();
+  }
+
+  handleQueryPagination(query: PaginationQueryType) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    return { skip: (page - 1) * limit, take: limit, page };
+  }
+
+  formatPaginationResponse(args: {
+    page: number;
+    count: number;
+    limit: number;
+  }): PaginationResponseMeta {
+    return {
+      meta: {
+        total: args.count,
+        page: args.page,
+        limit: args.limit,
+        totalPages: Math.ceil(args.count / args.limit),
+      },
+    };
   }
 }

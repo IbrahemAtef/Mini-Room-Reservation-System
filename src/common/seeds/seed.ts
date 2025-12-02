@@ -1,6 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { PrismaClient } from '../../../generated/prisma/client';
-import { generateUserSeed, getGuestUser, getAdminUser } from './user.seeds.js';
+import {
+  generateUserSeed,
+  getGuestUser,
+  getAdminUser,
+  getOwnerUser,
+} from './user.seeds.js';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 // Create adapter
@@ -22,11 +27,12 @@ async function main() {
   // Reseed users (including admin)
   const userSeeds = faker.helpers.multiple(generateUserSeed, { count: 15 });
   const guestUser = await getGuestUser();
+  const ownerUser = await getOwnerUser();
   const adminUser = await getAdminUser();
 
   await prisma.user.createMany({
     // This might fail if userSeeds contains duplicate emails
-    data: [...userSeeds, guestUser, adminUser],
+    data: [...userSeeds, guestUser, ownerUser, adminUser],
   });
 
   console.log('Database has been seeded successfully.');

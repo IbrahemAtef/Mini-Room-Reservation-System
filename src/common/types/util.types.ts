@@ -2,8 +2,8 @@ import { HttpStatus } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
 
 export type PaginationQueryType = {
-  page?: number;
-  limit?: number;
+  page: number;
+  limit: number;
 };
 
 export type PaginationResponseMeta = {

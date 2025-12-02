@@ -1,6 +1,6 @@
 import { userValidationSchema } from 'src/modules/user/util/user.validation.schema';
 import { ZodType } from 'zod';
-import { LoginDto, RegisterDTO } from '../dto/auth.dto';
+import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 
 // register = base schema
 export const registerValidationSchema =
@@ -10,4 +10,4 @@ export const registerValidationSchema =
 export const loginValidationSchema = registerValidationSchema.pick({
   email: true,
   password: true,
-}) satisfies ZodType<LoginDto>;
+}) satisfies ZodType<LoginDTO>;
