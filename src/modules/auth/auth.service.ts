@@ -5,6 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UserRole } from 'generated/prisma/enums';
 import { removeFields } from 'src/common/utils/object.util';
 import { createArgonHash, verifyArgonHash } from 'src/common/utils/argon.file';
+import { Prisma } from 'generated/prisma/client';
+import { isDevelopment } from 'src/common/utils/util';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +37,11 @@ export class AuthService {
     const foundUser = await this.userService.findByEmail(loginDTO.email);
 
     if (!foundUser) {
+      if (isDevelopment)
+        throw new Prisma.PrismaClientKnownRequestError('email not found', {
+          code: 'P2025',
+          clientVersion: 'unknown',
+        });
       throw new UnauthorizedException('Invalid credentials');
     }
 

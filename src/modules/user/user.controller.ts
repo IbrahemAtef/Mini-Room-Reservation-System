@@ -1,18 +1,11 @@
-import {
-  Controller,
-  Get,
-  ParseIntPipe,
-  Query,
-  DefaultValuePipe,
-  Param,
-  Body,
-  Patch,
-} from '@nestjs/common';
+import { Controller, Get, Query, Param, Body, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 import type { PaginationQueryType } from 'src/common/types/util.types';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'generated/prisma/enums';
 import type { UpdateUserDTO } from './dto/user.dto';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
+import { paginationSchema } from 'src/common/utils/api.util';
 
 @Controller('users')
 @Roles([UserRole.ADMIN])
@@ -21,15 +14,10 @@ export class UserController {
 
   @Get()
   findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
-    page: PaginationQueryType['page'],
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
-    limit: PaginationQueryType['limit'],
+    @Query(new ZodValidationPipe(paginationSchema))
+    query: PaginationQueryType,
   ) {
-    return this.userService.findAll({
-      page,
-      limit,
-    });
+    return this.userService.findAll(query);
   }
 
   @Get(':id')

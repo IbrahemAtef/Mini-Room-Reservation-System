@@ -3,11 +3,8 @@ import { ZodType } from 'zod';
 
 export class ZodValidationPipe<T> implements PipeTransform {
   constructor(private schema: ZodType<T>) {}
-  // TODO: need to delete unnecessary code
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   transform(value: T, metadata: ArgumentMetadata) {
-    console.log(metadata, 'metadata');
-    const parsedValue = this.schema.parse(value);
-    console.log(parsedValue, 'parsedValue');
-    return parsedValue;
+    return this.schema.parse(value);
   }
 }

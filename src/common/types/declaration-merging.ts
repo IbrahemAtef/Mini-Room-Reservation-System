@@ -9,6 +9,7 @@ export type EnvVariables = {
   DATABASE_NAME: string;
   DATABASE_HOST: string;
   DATABASE_PORT: number;
+  NODE_ENV: 'development' | 'production';
 };
 
 declare global {
