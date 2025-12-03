@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { isDevelopment } from './common/utils/util';
+import { RoomModule } from './modules/room/room.module';
 
 const envFilePath = path.join(
   __dirname,
@@ -23,6 +24,7 @@ const envFilePath = path.join(
       isGlobal: true,
       envFilePath,
     }),
+    RoomModule,
   ],
   controllers: [],
   providers: [

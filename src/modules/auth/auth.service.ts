@@ -68,8 +68,8 @@ export class AuthService {
     };
   }
 
-  me(user: UserResponseDTO['user']) {
-    return this.userService.findOne(user.id);
+  me(id: string) {
+    return this.userService.findOne(id);
   }
 
   validate(userPayload: UserResponseDTO['user']) {

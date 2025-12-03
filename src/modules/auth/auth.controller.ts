@@ -32,8 +32,8 @@ export class AuthController {
   }
 
   @Get('me')
-  me(@User() user: UserResponseDTO['user']) {
-    return this.authService.me(user);
+  me(@User('id') userId: string) {
+    return this.authService.me(userId);
   }
 
   @Get('validate')

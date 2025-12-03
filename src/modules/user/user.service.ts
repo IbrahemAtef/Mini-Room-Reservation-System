@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateUserDTO } from './dto/user.dto';
 import { DatabaseService } from '../database/database.service';
-import { RegisterDTO } from '../auth/dto/auth.dto';
+import { RegisterDTO, UserResponseDTO } from '../auth/dto/auth.dto';
 import {
   PaginatedResult,
   PaginationQueryType,
 } from '../../common/types/util.types';
-import { User, UserRole } from 'generated/prisma/client'; // Fixed duplicate import
+import { UserRole } from 'generated/prisma/client';
 import { removeFields } from 'src/common/utils/object.util';
 import { createArgonHash } from 'src/common/utils/argon.file';
 
@@ -22,7 +22,7 @@ export class UserService {
 
   findAll(
     query: PaginationQueryType,
-  ): Promise<PaginatedResult<Omit<User, 'password'>>> {
+  ): Promise<PaginatedResult<UserResponseDTO['user']>> {
     return this.prismaService.$transaction(async (prisma) => {
       const { skip, take, page } =
         this.prismaService.handleQueryPagination(query);
