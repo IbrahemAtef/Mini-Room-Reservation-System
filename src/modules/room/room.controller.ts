@@ -6,15 +6,22 @@ import {
   Patch,
   Param,
   Query,
-  // Delete,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { Roles } from '../../common/decorators/roles.decorator';
-import type { CreateRoomDTO, UpdateRoomDTO } from './dto/room.dto';
+import type {
+  CreateRoomDTO,
+  RoomStatusDTO,
+  UpdateRoomDTO,
+} from './dto/room.dto';
 import { User } from 'src/common/decorators/user.decorator';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
-import { CreateRoomValidationSchema } from './util/room.validation.schema';
-import { RoomStatus, UserRole } from 'generated/prisma/enums';
+import {
+  CreateRoomValidationSchema,
+  RoomStatusSchema,
+  updateRoomValidationSchema,
+} from './util/room.validation.schema';
+import { UserRole } from 'generated/prisma/enums';
 import { AvailableRoomsQuerySchema } from 'src/common/utils/api.util';
 import type { AvailableRoomsQueryDTO } from 'src/common/types/util.types';
 
@@ -23,7 +30,7 @@ import type { AvailableRoomsQueryDTO } from 'src/common/types/util.types';
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
-  @Post()
+  @Post('create')
   createRoom(
     @Body(new ZodValidationPipe(CreateRoomValidationSchema))
     createRoomDTO: CreateRoomDTO,
@@ -35,7 +42,8 @@ export class RoomController {
   @Patch(':id/details')
   updateRoomDetails(
     @Param('id') id: string,
-    @Body() updateRoomDTO: UpdateRoomDTO,
+    @Body(new ZodValidationPipe(updateRoomValidationSchema))
+    updateRoomDTO: UpdateRoomDTO,
     @User('id') ownerId: string,
   ) {
     return this.roomService.updateRoomDetails(id, updateRoomDTO, ownerId);
@@ -44,13 +52,13 @@ export class RoomController {
   @Patch(':id/status')
   updateRoomStatus(
     @Param('id') id: string,
-    @Body() roomStatus: RoomStatus,
+    @Body(new ZodValidationPipe(RoomStatusSchema)) roomStatus: RoomStatusDTO,
     @User('id') ownerId: string,
   ) {
     return this.roomService.updateRoomStatus(id, roomStatus, ownerId);
   }
 
-  @Get()
+  @Get('all')
   @Roles([UserRole.OWNER, UserRole.ADMIN])
   findAllRooms(
     @User('id') userId: string,
@@ -76,9 +84,4 @@ export class RoomController {
   findRoomWithBookings(@Param('id') id: string, @User('id') ownerId: string) {
     return this.roomService.findRoomWithBookings(id, ownerId);
   }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.roomService.remove(+id);
-  // }
 }

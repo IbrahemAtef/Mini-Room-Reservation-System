@@ -14,10 +14,26 @@ import { createArgonHash } from 'src/common/utils/argon.file';
 export class UserService {
   constructor(private prismaService: DatabaseService) {}
 
-  create(registerDTO: RegisterDTO) {
-    return this.prismaService.user.create({
-      data: registerDTO,
-    });
+  async create(registerDTO: RegisterDTO, role: UserRole) {
+    if (role === UserRole.GUEST) {
+      return await this.prismaService.user.create({
+        data: registerDTO,
+        omit: { password: true },
+      });
+    } else {
+      // hash password
+      const hashedPassword = await createArgonHash(registerDTO.password);
+
+      return await this.prismaService.user.create({
+        data: {
+          role,
+          password: hashedPassword,
+          email: registerDTO.email,
+          name: registerDTO.name,
+        },
+        omit: { password: true },
+      });
+    }
   }
 
   findAll(

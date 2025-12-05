@@ -1,5 +1,5 @@
 import z, { ZodType } from 'zod';
-import { CreateRoomDTO, UpdateRoomDTO } from '../dto/room.dto';
+import { CreateRoomDTO, RoomStatusDTO, UpdateRoomDTO } from '../dto/room.dto';
 import { Decimal } from 'generated/prisma/internal/prismaNamespace';
 
 // base schema
@@ -22,3 +22,10 @@ export const CreateRoomValidationSchema = z.object({
 
 export const updateRoomValidationSchema =
   CreateRoomValidationSchema.partial() satisfies ZodType<UpdateRoomDTO>;
+
+export const RoomStatusSchema = z.object({
+  status: z.preprocess(
+    (val) => (typeof val === 'string' ? val.toUpperCase() : val),
+    z.enum(['ACTIVE', 'INACTIVE']),
+  ),
+}) satisfies ZodType<RoomStatusDTO>;

@@ -1,4 +1,3 @@
-// import type { LoginDTO, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import type { LoginDTO, RegisterDTO, UserResponseDTO } from './dto/auth.dto';
@@ -9,6 +8,8 @@ import {
   registerValidationSchema,
 } from './util/auth-validation.schema';
 import { User } from 'src/common/decorators/user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'generated/prisma/enums';
 
 @Controller('auth')
 export class AuthController {
@@ -32,12 +33,18 @@ export class AuthController {
   }
 
   @Get('me')
+  @Roles([UserRole.ADMIN, UserRole.GUEST, UserRole.GUEST])
   me(@User('id') userId: string) {
     return this.authService.me(userId);
   }
 
   @Get('validate')
+  @Roles([UserRole.ADMIN, UserRole.GUEST, UserRole.GUEST])
   validate(@User() user: UserResponseDTO['user']): UserResponseDTO {
     return this.authService.validate(user);
   }
+  // This method is for :
+  // extending session time
+  // refreshing tokens
+  // checking validity
 }

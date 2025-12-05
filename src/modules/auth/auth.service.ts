@@ -19,15 +19,18 @@ export class AuthService {
     // hash password
     const hashedPassword = await createArgonHash(registerDTO.password);
     // store user db with hashed password
-    const createdUser = await this.userService.create({
-      ...registerDTO,
-      password: hashedPassword,
-    });
+    const createdUser = await this.userService.create(
+      {
+        ...registerDTO,
+        password: hashedPassword,
+      },
+      UserRole.GUEST,
+    );
     // generate jwt token
     const token = this.generateJwtToken(createdUser.id, createdUser.role);
     // return user data + token
     return {
-      user: removeFields(createdUser, ['password']),
+      user: createdUser,
       token,
     };
   }
@@ -45,7 +48,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // ? flag if policies allow this
+    // ? ASK: flag if policies allow this
     // if (foundUser.isDeleted) {
     //   throw new UnauthorizedException('Invalid credentials');
     // }

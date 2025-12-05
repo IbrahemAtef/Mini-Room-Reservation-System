@@ -1,5 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import type { CreateRoomDTO, UpdateRoomDTO } from './dto/room.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import type {
+  CreateRoomDTO,
+  RoomStatusDTO,
+  UpdateRoomDTO,
+} from './dto/room.dto';
 import { DatabaseService } from '../database/database.service';
 import { RoomStatus, UserRole } from 'generated/prisma/enums';
 import {
@@ -22,6 +26,7 @@ export class RoomService {
   }
 
   updateRoomDetails(id: string, updateRoomDTO: UpdateRoomDTO, ownerId: string) {
+    // TODO: if room price is the one to update do i need to update the booking ?
     return this.prismaService.room.update({
       where: {
         id,
@@ -31,13 +36,13 @@ export class RoomService {
     });
   }
 
-  updateRoomStatus(id: string, roomStatus: RoomStatus, ownerId: string) {
+  updateRoomStatus(id: string, roomStatus: RoomStatusDTO, ownerId: string) {
     return this.prismaService.room.update({
       where: {
         id,
         ownerId,
       },
-      data: { status: roomStatus },
+      data: { status: roomStatus.status },
     });
   }
 
@@ -74,8 +79,8 @@ export class RoomService {
     });
   }
 
-  findRoomWithBookings(id: string, ownerId: string) {
-    return this.prismaService.room.findUnique({
+  async findRoomWithBookings(id: string, ownerId: string) {
+    const room = await this.prismaService.room.findFirst({
       where: {
         id,
         ownerId,
@@ -85,5 +90,11 @@ export class RoomService {
         bookings: true,
       },
     });
+
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    return room;
   }
 }

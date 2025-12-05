@@ -40,6 +40,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
+    // console.log({ exception });
 
     const defaultError: ApiErrorResponse = {
       timestamp: new Date().toISOString(),
@@ -48,6 +49,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       path: req.url,
       message: 'Invalid data or operation. Please check your input',
     };
+    console.log({ exception });
 
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       switch (exception.code) {

@@ -9,6 +9,7 @@ import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { isDevelopment } from './common/utils/util';
 import { RoomModule } from './modules/room/room.module';
+import { BookingModule } from './modules/booking/booking.module';
 
 const envFilePath = path.join(
   __dirname,
@@ -25,6 +26,7 @@ const envFilePath = path.join(
       envFilePath,
     }),
     RoomModule,
+    BookingModule,
   ],
   controllers: [],
   providers: [

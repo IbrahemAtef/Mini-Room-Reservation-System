@@ -3,6 +3,7 @@ import { Prisma, PrismaClient } from 'generated/prisma/client';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import {
   AvailableRoomsQueryDTO,
+  BookingQueryDTO,
   PaginationQueryType,
   PaginationResponseMeta,
 } from 'src/common/types/util.types';
@@ -105,4 +106,44 @@ export class DatabaseService
     }
     return where;
   };
+
+  buildBookingWhereFilter(
+    userId: string,
+    userRole: UserRole, // 'GUEST' | 'OWNER' | 'ADMIN'
+    query: BookingQueryDTO,
+  ): Prisma.BookingWhereInput {
+    const where: Prisma.BookingWhereInput = {};
+
+    // ---------------------------
+    // ROLE-BASED ACCESS CONTROL
+    // ---------------------------
+
+    if (userRole === UserRole.GUEST) {
+      where.guestId = userId; // guest sees only self
+    }
+
+    if (userRole === UserRole.OWNER) {
+      where.room = {
+        ownerId: userId, // owner sees only their rooms' bookings
+      };
+    }
+
+    // ADMIN → no restriction
+
+    // ---------------------------
+    // Filter
+    // ---------------------------
+
+    if (query.status) where.status = query.status;
+
+    if (query.roomId) where.roomId = query.roomId;
+
+    if (query.date) {
+      where.AND = [
+        { checkIn: { lte: query.date } },
+        { checkOut: { gte: query.date } },
+      ];
+    }
+    return where;
+  }
 }

@@ -57,6 +57,7 @@ model Room {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([ownerId, name]) // room names per owner are unique
   @@map("rooms")
 }
 
@@ -69,10 +70,11 @@ enum RoomStatus {
 // Booking Model
 // -----------------------------
 model Booking {
-  id       String        @id @default(cuid())
-  checkIn  DateTime
-  checkOut DateTime
-  status   BookingStatus @default(PENDING)
+  id         String        @id @default(cuid())
+  checkIn    DateTime      @map("check_in")
+  checkOut   DateTime      @map("check_out")
+  status     BookingStatus @default(PENDING)
+  totalPrice Decimal       @db.Decimal(10, 2)
 
   guestId String @map("guest_id")
   guest   User   @relation("guest_bookings", fields: [guestId], references: [id])

@@ -1,5 +1,6 @@
 import {
   AvailableRoomsQueryDTO,
+  BookingQueryDTO,
   PaginationQueryType,
 } from '../types/util.types';
 import z, { ZodType } from 'zod';
@@ -8,6 +9,16 @@ export const paginationSchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(10),
 }) satisfies ZodType<PaginationQueryType>;
+
+export const BookingQuerySchema = paginationSchema.extend({
+  status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED']).optional(),
+  roomId: z.string().optional(),
+  date: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid date format')
+    .transform((val) => new Date(val))
+    .optional(),
+}) satisfies ZodType<BookingQueryDTO>;
 
 export const AvailableRoomsQuerySchema = paginationSchema
   .extend({
@@ -21,11 +32,13 @@ export const AvailableRoomsQuerySchema = paginationSchema
     startDate: z
       .string()
       .refine((val) => !isNaN(Date.parse(val)), 'Invalid startDate format')
+      .transform((val) => new Date(val))
       .optional(),
 
     endDate: z
       .string()
       .refine((val) => !isNaN(Date.parse(val)), 'Invalid endDate format')
+      .transform((val) => new Date(val))
       .optional(),
   })
   .refine(

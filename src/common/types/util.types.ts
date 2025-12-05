@@ -1,15 +1,20 @@
 import { HttpStatus } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
-import { RoomStatus } from 'generated/prisma/enums';
+import { BookingStatus, RoomStatus } from 'generated/prisma/enums';
 
 export type PaginationQueryType = {
   page: number;
   limit: number;
 };
+export type BookingQueryDTO = {
+  status?: BookingStatus;
+  roomId?: string;
+  date?: Date; // ISO date
+} & PaginationQueryType;
 
 export type AvailableRoomsQueryDTO = {
-  startDate?: string; // ISO date
-  endDate?: string; // ISO date
+  startDate?: Date; // ISO date
+  endDate?: Date; // ISO date
   minPrice?: number;
   maxPrice?: number;
 

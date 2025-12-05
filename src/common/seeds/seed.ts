@@ -1,10 +1,9 @@
-import { faker } from '@faker-js/faker';
 import { PrismaClient } from '../../../generated/prisma/client';
 import {
-  generateUserSeed,
   getGuestUser,
   getAdminUser,
   getOwnerUser,
+  randomUsers,
 } from './user.seeds.js';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
@@ -25,7 +24,7 @@ async function main() {
   await prisma.user.deleteMany({});
 
   // Reseed users (including admin)
-  const userSeeds = faker.helpers.multiple(generateUserSeed, { count: 15 });
+  const userSeeds = await Promise.all(randomUsers);
   const guestUser = await getGuestUser();
   const ownerUser = await getOwnerUser();
   const adminUser = await getAdminUser();
